@@ -1,54 +1,34 @@
-import { h, renderSSR, Helmet } from './deps.ts'
-import { Application, Router } from './deps.ts'
+/** @jsx h */
+/// <reference no-default-lib="true"/>
+/// <reference lib="dom" />
+/// <reference lib="dom.asynciterable" />
+/// <reference lib="deno.ns" />
 
-import { Comments } from './components/Comments.tsx'
-import { Hello } from './components/Hello.tsx'
 
-const comments = ['Hey! This is the first comment.', 'Hi, from another comment!']
+import { serve } from "https://deno.land/std@0.114.0/http/server.ts";
+import { h, renderSSR } from "https://deno.land/x/nano_jsx@v0.0.30/mod.ts";
 
-const App = () => (
-  <div>
-    <Helmet>
-      <title>Nano JSX SSR</title>
-      <meta name="description" content="Server Side Rendered Nano JSX Application" />
-    </Helmet>
+function App() {
+    return (
+        <html>
+        <head>
+            <title>Paul</title>
+        </head>
+        <body>
+        <h1>Hello world</h1>
+        </body>
+        </html>
+    );
+}
 
-    <Hello />
+function handler(req: Request) {
+    const html = renderSSR(<App />);
+    return new Response(html, {
+        headers: {
+            "content-type": "text/html",
+        },
+    });
+}
 
-    <div id="comments">
-      <Comments comments={comments} />
-    </div>
-  </div>
-)
-
-const ssr = renderSSR(<App />)
-const { body, head, footer } = Helmet.SSR(ssr)
-
-const html = `
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    ${head.join('\n')}
-  </head>
-  <body>
-    ${body}
-    ${footer.join('\n')}
-  </body>
-</html>`
-
-const router = new Router()
-router.get('/', context => {
-  context.response.body = html
-})
-
-const app = new Application()
-app.use(router.routes())
-app.use(router.allowedMethods())
-
-app.addEventListener('listen', ({ port }) => {
-  console.log(`Listening on: http://localhost:${port}`)
-})
-
-await app.listen({ port: 5000 })
+console.log("Listening on http://localhost:8000");
+serve(handler);
